@@ -2,9 +2,8 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
-  push:
     tags: ['v*']
+  pull_request:
 jobs:
   test:
     runs-on: ubuntu-latest
