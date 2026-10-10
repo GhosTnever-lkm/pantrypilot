@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f4ec">
+  <meta name="description" content="PantryPilot — план меню на неделю и единый список покупок с учётом запасов. Локально и без аккаунта.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>PantryPilot — меню и покупки</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="core.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="brand" href="#top"><img src="assets/icon.svg" alt="" width="40" height="40"><span>Pantry<span>Pilot</span></span></a>
+    <div class="privacy"><i></i> План и рецепты остаются в этом браузере</div>
+    <div class="top-actions">
+      <button class="button quiet" id="export-plan">Экспорт плана</button>
+      <button class="button quiet" id="import-plan">Импорт</button>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+      <button class="button primary" id="print-list">Печать списка ↗</button>
+    </div>
+  </header>
+  <main class="wrap" id="top">
+    <section class="hero">
+      <div><p class="eyebrow">ПЛАНИРУЙ НЕДЕЛЮ, А НЕ ХОДИ ПО КРУГУ</p><h1>От меню<br>к <em>списку покупок.</em></h1><p class="lead">Собери блюда на неделю, укажи порции и запасы дома. PantryPilot объединит ингредиенты и посчитает, что действительно нужно купить.</p></div>
+      <div class="hero-card"><div class="hero-card-top"><span>ЭТА НЕДЕЛЯ</span><span class="status"><i></i> Сохранено</span></div><strong id="week-range">—</strong><div class="hero-stats"><div><b id="meal-count">0</b><span>блюд</span></div><div><b id="item-count">0</b><span>покупок</span></div><div><b id="planned-servings">0</b><span>порций</span></div></div></div>
+    </section>
+    <nav class="tabs" aria-label="Разделы PantryPilot"><button class="tab active" data-panel="week">01 <span>План недели</span></button><button class="tab" data-panel="recipes">02 <span>Мои рецепты</span></button><button class="tab" data-panel="shopping">03 <span>Список покупок</span><b id="shopping-badge">0</b></button><button class="tab" data-panel="pantry">04 <span>Запасы дома</span></button></nav>
+    <section class="panel active" id="panel-week">
+      <div class="section-head"><div><p class="eyebrow">СНАЧАЛА РИТМ</p><h2>Меню недели</h2><p>Добавляй рецепты в дни и указывай число порций.</p></div><button class="button primary" id="add-meal">＋ Добавить блюдо</button></div>
+      <div class="week-grid" id="week-grid"></div>
+      <div class="tips"><span>✳</span><p><b>Удобно менять план.</b> Перенеси блюдо на другой день или удали его — список покупок пересчитается сам.</p></div>
+    </section>
+    <section class="panel" id="panel-recipes">
+      <div class="section-head"><div><p class="eyebrow">ТВОЯ КНИГА</p><h2>Рецепты</h2><p>Запиши базовые порции и продукты — масштабирование произойдёт при планировании.</p></div><button class="button primary" id="new-recipe">＋ Новый рецепт</button></div>
+      <div class="recipe-grid" id="recipe-grid"></div>
+    </section>
+    <section class="panel" id="panel-shopping">
+      <div class="section-head"><div><p class="eyebrow">СВОДКА ПО ИНГРЕДИЕНТАМ</p><h2>Список покупок</h2><p>Одинаковые продукты объединены, запасы вычтены. Отметки хранятся локально.</p></div><div class="shop-actions"><button class="button quiet" id="copy-list">Копировать</button><button class="button primary" id="print-list-2">Печать ↗</button></div></div>
+      <div class="shopping-summary"><div><span>К покупке</span><b id="shop-total">0 позиций</b></div><label class="search"><span>⌕</span><input id="shop-search" type="search" placeholder="Найти продукт" aria-label="Найти продукт"></label></div>
+      <div id="shopping-list" class="shopping-list"></div>
+      <div class="empty" id="shopping-empty" hidden><span>✓</span><h3>Всё уже есть</h3><p>Добавь блюда в план или обнови запасы дома.</p></div>
+    </section>
+    <section class="panel" id="panel-pantry">
+      <div class="section-head"><div><p class="eyebrow">ЧТО УЖЕ ЕСТЬ</p><h2>Запасы дома</h2><p>Укажи количество и единицу измерения. Совпадающие единицы автоматически пересчитаются.</p></div><button class="button primary" id="add-pantry">＋ Добавить запас</button></div>
+      <div class="pantry-list" id="pantry-list"></div>
+      <div class="tips"><span>↗</span><p>Поддерживаются г/кг, мл/л, штуки, зубчики, банки, столовые и чайные ложки. Неизвестные единицы сравниваются только с такими же.</p></div>
+    </section>
+    <footer><span>PantryPilot <b>v0.1.0</b></span><span>Планирование — не медицинская рекомендация. Проверяй состав и аллергенность продуктов.</span><button id="reset-demo">Восстановить пример</button></footer>
+  </main>
+  <dialog id="recipe-dialog"><form method="dialog" id="recipe-form"><div class="dialog-head"><div><p class="eyebrow">КНИГА РЕЦЕПТОВ</p><h2 id="recipe-dialog-title">Новый рецепт</h2></div><button class="close" value="cancel" aria-label="Закрыть">×</button></div><label class="field">Название<input name="name" required maxlength="80" placeholder="Например, чечевичный суп"></label><label class="field">Базовое количество порций<input name="servings" required type="number" min="0.1" step="0.1" value="2"></label><div class="ingredient-head"><b>Ингредиенты</b><button class="button quiet small" type="button" id="add-ingredient">＋ Добавить</button></div><div id="recipe-ingredients"></div><div class="dialog-actions"><button class="button quiet" value="cancel">Отмена</button><button class="button primary" value="save" id="save-recipe">Сохранить рецепт</button></div></form></dialog>
+  <dialog id="meal-dialog"><form method="dialog" id="meal-form"><div class="dialog-head"><div><p class="eyebrow">МЕНЮ НЕДЕЛИ</p><h2>Добавить блюдо</h2></div><button class="close" value="cancel" aria-label="Закрыть">×</button></div><label class="field">Рецепт<select name="recipeId" id="meal-recipe" required></select></label><div class="form-row"><label class="field">День<select name="day"><option value="mon">Понедельник</option><option value="tue">Вторник</option><option value="wed">Среда</option><option value="thu">Четверг</option><option value="fri">Пятница</option><option value="sat">Суббота</option><option value="sun">Воскресенье</option></select></label><label class="field">Приём пищи<select name="slot"><option>Завтрак</option><option>Обед</option><option>Ужин</option><option>Перекус</option></select></label></div><label class="field">Порций<input name="servings" type="number" min="0.1" step="0.1" value="2" required></label><div class="dialog-actions"><button class="button quiet" value="cancel">Отмена</button><button class="button primary" value="save">Добавить в план</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
