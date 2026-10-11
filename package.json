@@ -1,6 +1,6 @@
 {
   "name": "pantrypilot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Local-first weekly meal planner and consolidated grocery list",
   "type": "commonjs",
@@ -9,6 +9,8 @@
     "test": "node --test",
     "check": "node --check core.js && node --check app.js && node --test"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT"
 }
