@@ -2,6 +2,8 @@
 
 PantryPilot is a local-first weekly meal planner and grocery list. Add recipes, assign them to days and meals, adjust servings, and get a consolidated shopping list that subtracts ingredients already in your pantry.
 
+![PantryPilot: weekly meal planner with grocery list](docs/screenshot.png)
+
 ## Run
 
 Requires Node.js 20 or later. Run `npm start` in this folder and open `http://127.0.0.1:4173`. The static app can also be opened via GitHub Pages.
