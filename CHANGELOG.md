@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 - 2026-10-13
+
+- Validate pantry records and checked shopping-item data when importing a plan backup; treat an omitted checked list as empty so imported plans render reliably.
+
 ## 0.1.2 - 2026-10-11
 
 - Add a real screenshot of the app to the README.

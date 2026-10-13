@@ -98,7 +98,7 @@
   $('copy-list').addEventListener('click',async()=>{const text=shopping().map((x)=>`[ ] ${x.name} — ${formatUnit(x.unit,x.quantity)} (${x.category})`).join('\n');try{await navigator.clipboard.writeText(text);toast('Список скопирован.');}catch{toast('Не удалось скопировать. Используй печать.');}});
   $('export-plan').addEventListener('click',()=>{const blob=new Blob([Core.exportPlan(state)],{type:'application/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='pantrypilot-plan.json';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);});
   $('import-plan').addEventListener('click',()=>$('import-file').click());
-  $('import-file').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;try{state=Core.importPlan(await file.text());render();toast('План импортирован.');}catch(error){toast(error.message);}finally{event.target.value='';}});
+  $('import-file').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;try{state=Core.importPlan(await file.text());state.checked ||= [];render();toast('План импортирован.');}catch(error){toast(error.message);}finally{event.target.value='';}});
   $('reset-demo').addEventListener('click',()=>{state=demo();render();toast('Пример восстановлен.');});
   render();
 })();

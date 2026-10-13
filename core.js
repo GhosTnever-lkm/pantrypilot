@@ -111,9 +111,16 @@ function importPlan(source) {
   let parsed;
   try { parsed = JSON.parse(source); } catch { throw new TypeError('File is not valid JSON'); }
   if (!parsed || parsed.schema !== 'pantrypilot-plan' || parsed.version !== 1 || !parsed.plan || !Array.isArray(parsed.plan.meals) || !Array.isArray(parsed.plan.recipes) || !Array.isArray(parsed.plan.pantry)) throw new TypeError('Unsupported or invalid PantryPilot backup');
+  if (parsed.plan.checked !== undefined && (!Array.isArray(parsed.plan.checked) || parsed.plan.checked.some((id) => typeof id !== 'string'))) throw new TypeError('Invalid checked shopping items in backup');
   for (const recipe of parsed.plan.recipes) {
     const result = validateRecipe(recipe);
     if (!result.valid) throw new TypeError(result.errors.join('; '));
+  }
+  const pantryIds = new Set();
+  for (const item of parsed.plan.pantry) {
+    if (!item || typeof item !== 'object' || Array.isArray(item) || typeof item.id !== 'string' || !item.id || pantryIds.has(item.id) || typeof item.name !== 'string' || !item.name.trim() || typeof item.unit !== 'string') throw new TypeError('Invalid pantry item in backup');
+    try { parseQuantity(item.quantity); } catch { throw new TypeError('Invalid pantry item quantity in backup'); }
+    pantryIds.add(item.id);
   }
   const recipeIds = new Set(parsed.plan.recipes.map((recipe) => recipe.id));
   for (const meal of parsed.plan.meals) if (!recipeIds.has(meal.recipeId) || !(parseQuantity(meal.servings) > 0) || !['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(meal.day)) throw new TypeError('Invalid meal assignment in backup');
