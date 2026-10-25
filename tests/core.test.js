@@ -1,7 +1,16 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const core = require('../core');
+
+test('package version, VERSION, and newest changelog entry stay aligned', () => {
+  const pkg = JSON.parse(fs.readFileSync(require.resolve('../package.json'), 'utf8'));
+  const version = fs.readFileSync(require.resolve('../VERSION'), 'utf8').trim();
+  const changelog = fs.readFileSync(require.resolve('../CHANGELOG.md'), 'utf8');
+  assert.equal(pkg.version, version);
+  assert.match(changelog, new RegExp(`^## ${pkg.version.replaceAll('.', '\\.')} - `, 'm'));
+});
 
 test('scales ingredient amounts for serving count', () => {
   const result = core.scaleRecipe({ servings: 2, ingredients: [{ name: 'Rice', quantity: 100, unit: 'g' }] }, 5);
@@ -35,6 +44,15 @@ test('supports decimal comma and rejects negative or malformed quantities', () =
   assert.equal(core.parseQuantity('1,25'), 1.25);
   assert.throws(() => core.parseQuantity('-1'));
   assert.throws(() => core.parseQuantity('1/2'));
+});
+
+test('rejects quantity conversions and totals that overflow finite numbers', () => {
+  assert.throws(() => core.canonicalAmount(1e308, 'kg'), /too large/);
+  assert.throws(() => core.scaleRecipe({ servings: 1, ingredients: [{ name: 'Rice', quantity: 1e308, unit: 'g' }] }, 2), /too large/);
+  assert.throws(() => core.aggregateShoppingList([
+    { servings: 1, recipe: { servings: 1, ingredients: [{ name: 'Rice', quantity: 1e308, unit: 'g' }] } },
+    { servings: 1, recipe: { servings: 1, ingredients: [{ name: 'rice', quantity: 1e308, unit: 'g' }] } },
+  ]), /too large/);
 });
 
 test('rejects empty recipes and invalid recipe structures', () => {

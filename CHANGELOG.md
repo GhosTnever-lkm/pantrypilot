@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4 - 2026-10-25
+
+- Reject unit conversions, serving scales, and combined quantities that overflow finite-number calculations instead of showing `Infinity` in the shopping list.
+
 ## 0.1.3 - 2026-10-13
 
 - Validate pantry records and checked shopping-item data when importing a plan backup; treat an omitted checked list as empty so imported plans render reliably.

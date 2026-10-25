@@ -27,11 +27,14 @@ function parseQuantity(value) {
 }
 
 function canonicalAmount(quantity, unit) {
+  if (!Number.isFinite(quantity) || quantity < 0) throw new TypeError('Quantity must be a nonnegative finite number');
   const normalized = String(unit || '').normalize('NFKC').trim().toLocaleLowerCase();
   const info = UNIT_ALIASES.get(normalized);
   if (!info) return { dimension: `unit:${normalized}`, unit: normalized || 'unit', amount: quantity };
   const [dimension, canonical, multiplier = 1] = info;
-  return { dimension, unit: canonical, amount: quantity * multiplier };
+  const amount = quantity * multiplier;
+  if (!Number.isFinite(amount)) throw new RangeError('Converted quantity is too large to calculate');
+  return { dimension, unit: canonical, amount };
 }
 
 function scaleRecipe(recipe, servings) {
@@ -40,12 +43,15 @@ function scaleRecipe(recipe, servings) {
   if (target <= 0 || base <= 0) throw new RangeError('Servings must be greater than zero');
   if (!Array.isArray(recipe.ingredients)) throw new TypeError('Recipe ingredients must be an array');
   const factor = target / base;
+  if (!Number.isFinite(factor)) throw new RangeError('Serving scale is too large to calculate');
   return recipe.ingredients.map((ingredient) => {
     const name = String(ingredient.name || '').trim();
     if (!name) throw new TypeError('Ingredient name is required');
     const quantity = parseQuantity(ingredient.quantity);
     const unit = String(ingredient.unit || '').trim();
-    return { name, key: normalizeIngredientName(name), quantity: quantity * factor, unit, category: String(ingredient.category || 'Другое').trim() || 'Другое' };
+    const scaledQuantity = quantity * factor;
+    if (!Number.isFinite(scaledQuantity)) throw new RangeError('Scaled ingredient quantity is too large to calculate');
+    return { name, key: normalizeIngredientName(name), quantity: scaledQuantity, unit, category: String(ingredient.category || 'Другое').trim() || 'Другое' };
   });
 }
 
@@ -56,7 +62,9 @@ function aggregateShoppingList(meals, pantry = []) {
     if (!key) continue;
     const parsed = canonicalAmount(parseQuantity(item.quantity), item.unit);
     const compound = `${key}\0${parsed.dimension}`;
-    have.set(compound, (have.get(compound) || 0) + parsed.amount);
+    const total = (have.get(compound) || 0) + parsed.amount;
+    if (!Number.isFinite(total)) throw new RangeError('Combined pantry quantity is too large to calculate');
+    have.set(compound, total);
   }
   const needed = new Map();
   for (const meal of meals || []) {
@@ -68,6 +76,7 @@ function aggregateShoppingList(meals, pantry = []) {
       const compound = `${item.key}\0${parsed.dimension}`;
       const current = needed.get(compound) || { name: item.name, key: item.key, dimension: parsed.dimension, unit: parsed.unit, amount: 0, category: item.category, sources: [] };
       current.amount += parsed.amount;
+      if (!Number.isFinite(current.amount)) throw new RangeError('Combined ingredient quantity is too large to calculate');
       current.sources.push(meal.recipe.name || 'Recipe');
       needed.set(compound, current);
     }
